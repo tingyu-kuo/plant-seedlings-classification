@@ -66,7 +66,7 @@ class CNN(nn.Module):                   # 官方步驟，引入nn.Module
 #======================= dataset =======================#
 
 path = '/home/tingyu/User/Plant_Seedlings_Classification/train'
-category = os.listdir(path) # all folder name under the path
+category = os.listdir(path) # all folders name under the path
 train_img = []       # train image path
 train_label = []     # train image label index
 val_img = []         # validation image path
@@ -78,7 +78,7 @@ label_num = 0
 # dataset prepare
 for classes in category:
     img_path = path + '/' + classes
-    classes_img = os.listdir(img_path)  # all file name under the path
+    classes_img = os.listdir(img_path)  # all files name under the path
     for i in range(len(classes_img)):
         if len(classes_img)-i > 50:     # 資料倒數50筆，前30筆存入validation的list，後20筆存入test的list
             train_img.append(img_path + '/' + classes_img[i])
@@ -107,12 +107,11 @@ loss_function = nn.CrossEntropyLoss()
 
 #======================= dataloader and training =======================#
 
-data_transform = transforms.Compose([   # resize, to tensor , normalize...
+data_transform = transforms.Compose([   # preprocesing
     transforms.RandomResizedCrop(224),  # resize image to 224*224
     transforms.RandomRotation(60),      # rotate image
     transforms.ToTensor(),              # to tensor, shape = (3,224,224) and /255
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]) # normalize
-])
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])]) # normalize
 
 def default_loader(path):
     image =  Image.open(path).convert('RGB') # avoid RGBA
@@ -128,7 +127,7 @@ class trainset(Dataset):    # training data's dataset
 
     def __getitem__(self, index):
         img = self.images[index]
-        train_x = self.loader(img)      # do preprocessing
+        train_x = self.loader(img)      # do transforms
         train_y = self.target[index]
         return train_x, train_y
 
@@ -158,8 +157,6 @@ val_data  = validationset()
 data_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
 val_data_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True)
 
-count = 0
-best_acc = 0.0
 
 # for curve painting
 train_loss_list = []
@@ -167,15 +164,22 @@ train_acc_list = []
 val_loss_list = []
 val_acc_list = []
 
+# initial values
+count = 0
+best_acc = 0.0
+
+# set earlystopping step number and epoch number
 earlystopping = 5
 num_epochs = 100
+
+# start training
 for epoch in range(num_epochs): 
     print(f'Epoch: {epoch + 1}/{num_epochs}')
     print('-' * 13)
     training_loss = 0.0
     training_corrects = 0.0
     for i, (inputs, labels) in enumerate(data_loader, 0):
-#         wrap them in Variable
+#         get values from dataloader
         inputs = Variable(inputs.cuda(DEVICE))
         labels = Variable(labels.cuda(DEVICE))
         
@@ -185,11 +189,13 @@ for epoch in range(num_epochs):
         outputs = model(inputs)
         _, preds = torch.max(outputs.data, 1)
         loss = loss_function(outputs, labels)  # loss 
-        loss.backward()         # 開始反向傳遞
-        optimizer.step()        # optimize in leanring rate 0.0001
+        loss.backward()         # Backpropagation
+        optimizer.step()        # optimize (leanring rate 0.0001)
         
+#         sum loss and acc
         training_loss += loss.data * inputs.size(0)
         training_corrects += sum(preds == labels.data)
+        
 #     validations' loss and acc    
     val_loss = 0.0
     val_acc = 0.0
