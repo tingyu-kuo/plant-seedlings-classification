@@ -231,13 +231,14 @@ for epoch in range(num_epochs):
     if(best_acc < val_acc): 
         count = 0
         best_acc = val_acc
+        torch.save(model.state_dict(),'/home/tingyu/Jupyter/models/Plant_Seedlings_Classification_model.pkl')
     else: 
         count = count + 1
 
     if(count == earlystopping):
         print("Early Stopping")
         break
-torch.save(model.state_dict(),'/home/tingyu/Jupyter/models/Plant_Seedlings_Classification_model.pkl')
+
 
 #======================= training curve =======================#
 
