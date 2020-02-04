@@ -10,12 +10,12 @@ DEVICE = 6
 
 #======================= model =======================#
 
-class CNN(nn.Module):                   # 官方步驟，引入nn.Module
-    def __init__(self, num_classes):    # 官方步驟
-        super(CNN, self).__init__()     # 官方步驟，繼承nn.Module的__init__功能
+class CNN(nn.Module):                   
+    def __init__(self, num_classes):    
+        super(CNN, self).__init__()     
         
-        # 建立自己的layers:
-        self.cnn_layers_1 = nn.Sequential(    # cnn_layers為自訂名稱，cnn layers
+        
+        self.cnn_layers_1 = nn.Sequential(    
             
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, padding=1),
             nn.ReLU(),
